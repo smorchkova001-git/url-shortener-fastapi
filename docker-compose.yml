@@ -1,0 +1,41 @@
+version: "3.7"
+services:
+  db:
+    image: postgres:16
+    container_name: url_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: urlshortener
+    ports:
+      - "5432:5432"
+    # Дополнительный функционал: Volumes сохраняют данные базы при перезапусках контейнера
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: url_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  app:
+    build:
+      context: .
+    container_name: url_app
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+    ports:
+      - "9999:8000"
+    command: ["/fastapi_app/docker/app.sh"]
+    volumes:
+      - ./migrations:/fastapi_app/migrations
+
+volumes:
+  postgres_data:
+  redis_data:
